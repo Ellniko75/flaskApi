@@ -1,5 +1,5 @@
 import psycopg2
-import flask
+from psycopg2 import sql
 from flask import make_response
 
 
@@ -49,14 +49,18 @@ class Database:
                     return make_response(e)
 
     @staticmethod
-    def insertData(msg):
+    def insertData(data):
         with (Database.connection):
             with Database.connection.cursor() as cursor:
                 try:
-                    sql_query = f"""
-                    {msg}
-                    """
-                    cursor.execute(sql_query)
+                    sql_query = sql.SQL("INSERT INTO mails (mail_id, mail_from, mail_message, mail_extracted_data) VALUES ({}, {}, {}, {})").format(
+                        sql.Literal(data['msg_id_data']),
+                        sql.Literal(data['from_message']),
+                        sql.Literal(data['message_data']),
+                        sql.Literal(data['msg_data_extracted'])
+                    )
+                    cursor.execute(
+                        sql_query)
                     return make_response("Success", 201)
                 except psycopg2.DatabaseError as e:
                     return make_response(f"{e}", 400)

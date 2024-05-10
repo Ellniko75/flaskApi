@@ -20,7 +20,10 @@ def get_mails():
 @app.route("/Mails", methods=['POST'])
 def post_mail():
     data = request.json
-    res = Database.insertData(
-        f"""INSERT INTO Mails values($${data['msg_id_data']}$$,$${data['from_message']}$$,$${data['message_data']}$$,$${data['msg_data_extracted']}$$);""")
-
+    print(data['msg_id_data'])
+    res = Database.insertData(data=data)
     return res
+
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=5000)
