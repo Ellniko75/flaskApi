@@ -1,11 +1,18 @@
 import psycopg2
 from psycopg2 import sql
 from flask import make_response
+from datetime import datetime
+from DateTimeFormat import parseDateTime
 
 
 class Database:
-    connection = psycopg2.connect(
-        database="postgres", user='postgres', password='1234', host="localhost", port=5432)
+
+    connection = None
+
+    @staticmethod
+    def createConnection(database, user, password, host, port):
+        Database.connection = psycopg2.connect(
+            database=database, user=user, password=password, host=host, port=port)
 
     @staticmethod
     def setupDatabase():
@@ -17,7 +24,8 @@ class Database:
                     mail_id text primary key,
                     mail_from varchar(255) not null,
                     mail_message text not null,
-                    mail_extracted_data text not null
+                    mail_extracted_data text not null,
+                    mail_date TIMESTAMP not null
                     )
                     """
                     cursor.execute(sql_query)
@@ -37,10 +45,12 @@ class Database:
                     arrayDictionary = []
                     # Transform the result from the function "fetchall()" to an array of json
                     for row in rows:
+
                         json = {"msg_id_data": row[0],
                                 "from_message": row[1],
                                 "message_data": row[2],
-                                "msg_data_extracted": row[3]
+                                "msg_data_extracted": row[3],
+                                "msg_date": row[4]
                                 }
 
                         arrayDictionary.append(json)
@@ -53,11 +63,12 @@ class Database:
         with (Database.connection):
             with Database.connection.cursor() as cursor:
                 try:
-                    sql_query = sql.SQL("INSERT INTO mails (mail_id, mail_from, mail_message, mail_extracted_data) VALUES ({}, {}, {}, {})").format(
+                    sql_query = sql.SQL("INSERT INTO Mails (mail_id, mail_from, mail_message, mail_extracted_data,mail_date) VALUES ({}, {}, {}, {},{})").format(
                         sql.Literal(data['msg_id_data']),
                         sql.Literal(data['from_message']),
                         sql.Literal(data['message_data']),
-                        sql.Literal(data['msg_data_extracted'])
+                        sql.Literal(data['msg_data_extracted']),
+                        sql.Literal(parseDateTime(data['msg_date']))
                     )
                     cursor.execute(
                         sql_query)
