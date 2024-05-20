@@ -21,11 +21,11 @@ class Database:
                 try:
                     sql_query = """
                     CREATE TABLE IF NOT EXISTS Mails(
-                    mail_id text primary key,
-                    mail_from varchar(255) not null,
-                    mail_message text not null,
-                    mail_extracted_data text not null,
-                    mail_date TIMESTAMP not null
+                    msg_id_data text primary key,
+                    from_message varchar(255) not null,
+                    message_data text not null,
+                    msg_data_extracted text not null,
+                    msg_date TIMESTAMP not null
                     )
                     """
                     cursor.execute(sql_query)
@@ -45,14 +45,40 @@ class Database:
                     arrayDictionary = []
                     # Transform the result from the function "fetchall()" to an array of json
                     for row in rows:
-
                         json = {"msg_id_data": row[0],
                                 "from_message": row[1],
                                 "message_data": row[2],
                                 "msg_data_extracted": row[3],
                                 "msg_date": row[4]
                                 }
+                        arrayDictionary.append(json)
+                    return arrayDictionary
+                except psycopg2.DatabaseError as e:
+                    return make_response(e)
 
+    def searchData(searchParam):
+        with (Database.connection):
+            with Database.connection.cursor() as cursor:
+                try:
+                    sql_query = sql_query = sql.SQL("select * from Mails where from_message ILIKE {} or message_data ILIKE {} or msg_data_extracted ILIKE {}").format(
+                        sql.Literal("%"+searchParam+"%"),
+                        sql.Literal("%"+searchParam+"%"),
+                        sql.Literal("%"+searchParam+"%")
+
+                    )
+                    cursor.execute(sql_query)
+                    rows = cursor.fetchall()
+                    if len(rows) == 0:
+                        return []
+                    arrayDictionary = []
+                    # Transform the result from the function "fetchall()" to an array of json
+                    for row in rows:
+                        json = {"msg_id_data": row[0],
+                                "from_message": row[1],
+                                "message_data": row[2],
+                                "msg_data_extracted": row[3],
+                                "msg_date": row[4]
+                                }
                         arrayDictionary.append(json)
                     return arrayDictionary
                 except psycopg2.DatabaseError as e:
@@ -63,7 +89,7 @@ class Database:
         with (Database.connection):
             with Database.connection.cursor() as cursor:
                 try:
-                    sql_query = sql.SQL("INSERT INTO Mails (mail_id, mail_from, mail_message, mail_extracted_data,mail_date) VALUES ({}, {}, {}, {},{})").format(
+                    sql_query = sql.SQL("INSERT INTO Mails (msg_id_data, from_message, message_data, msg_data_extracted,msg_date) VALUES ({}, {}, {}, {},{})").format(
                         sql.Literal(data['msg_id_data']),
                         sql.Literal(data['from_message']),
                         sql.Literal(data['message_data']),
