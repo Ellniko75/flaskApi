@@ -4,4 +4,4 @@
 
 #How to run
 Create a Dockerfile with Docker
-Run `code` Docker build -t yourname .`code`
+Run `Docker build -t yourname .`
